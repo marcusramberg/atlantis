@@ -760,7 +760,7 @@ $$$
 			for _, verbose := range []bool{true, false} {
 				t.Run(c.Description, func(t *testing.T) {
 					s := r.Render(res, c.Command, "log", verbose, c.VCSHost)
-					expWithBackticks := strings.Replace(c.Expected, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(c.Expected, "$", "`")
 					if !verbose {
 						Equals(t, expWithBackticks, s)
 					} else {
@@ -919,7 +919,7 @@ $$$
 			for _, verbose := range []bool{true, false} {
 				t.Run(c.Description, func(t *testing.T) {
 					s := r.Render(res, c.Command, "log", verbose, c.VCSHost)
-					expWithBackticks := strings.Replace(c.Expected, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(c.Expected, "$", "`")
 					if !verbose {
 						Equals(t, expWithBackticks, s)
 					} else {
@@ -1071,7 +1071,7 @@ $$$
 			for _, verbose := range []bool{true, false} {
 				t.Run(c.Description, func(t *testing.T) {
 					s := r.Render(res, c.Command, "log", verbose, c.VCSHost)
-					expWithBackticks := strings.Replace(c.Expected, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(c.Expected, "$", "`")
 					if !verbose {
 						Equals(t, expWithBackticks, s)
 					} else {
@@ -1255,7 +1255,7 @@ $$$
 `
 				}
 
-				expWithBackticks := strings.Replace(exp, "$", "`", -1)
+				expWithBackticks := strings.ReplaceAll(exp, "$", "`")
 				Equals(t, expWithBackticks, rendered)
 			})
 	}
@@ -1433,7 +1433,7 @@ $$$
 						}
 					}
 
-					expWithBackticks := strings.Replace(exp, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(exp, "$", "`")
 					Equals(t, expWithBackticks, rendered)
 				})
 		}
@@ -1490,9 +1490,7 @@ $$$
 ---
 
 `
-	expWithBackticks := strings.Replace(exp, "$", "`", -1)
-	Equals(t, expWithBackticks, rendered)
-}
+	expWithBackticks := strings.ReplaceAll(exp, "$", "`")
 
 func TestRenderProjectResults_MultiProjectPlanWrapped(t *testing.T) {
 	mr := events.GetMarkdownRenderer(
@@ -1571,7 +1569,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 * :put_litter_in_its_place: To delete all plans and locks for the PR, comment:
     * $atlantis unlock$
 `
-	expWithBackticks := strings.Replace(exp, "$", "`", -1)
+	expWithBackticks := strings.ReplaceAll(exp, "$", "`")
 	Equals(t, expWithBackticks, rendered)
 }
 
@@ -1686,7 +1684,7 @@ This plan was not saved because one or more projects failed and automerge requir
 				"",    // MarkdownTemplateOverridesDir
 			)
 			rendered := mr.Render(c.cr, command.Plan, "log", false, models.Github)
-			expWithBackticks := strings.Replace(c.exp, "$", "`", -1)
+			expWithBackticks := strings.ReplaceAll(c.exp, "$", "`")
 			Equals(t, expWithBackticks, rendered)
 		})
 	}
@@ -2162,7 +2160,7 @@ $$$
 			for _, verbose := range []bool{true, false} {
 				t.Run(c.Description, func(t *testing.T) {
 					s := r.Render(res, c.Command, "log", verbose, c.VCSHost)
-					expWithBackticks := strings.Replace(c.Expected, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(c.Expected, "$", "`")
 					if !verbose {
 						Equals(t, expWithBackticks, s)
 					} else {
@@ -2599,7 +2597,7 @@ Plan: 1 to add, 2 to change, 1 to destroy.
 			for _, verbose := range []bool{true, false} {
 				t.Run(c.Description, func(t *testing.T) {
 					s := r.Render(res, c.Command, "log", verbose, c.VCSHost)
-					expWithBackticks := strings.Replace(c.Expected, "$", "`", -1)
+					expWithBackticks := strings.ReplaceAll(c.Expected, "$", "`")
 					if !verbose {
 						Equals(t, expWithBackticks, s)
 					} else {

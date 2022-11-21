@@ -136,7 +136,7 @@ func GetMarkdownRenderer(
 // Render formats the data into a markdown string.
 // nolint: interfacer
 func (m *MarkdownRenderer) Render(res command.Result, cmdName command.Name, log string, verbose bool, vcsHost models.VCSHostType) string {
-	commandStr := cases.Title(language.English).String(strings.Replace(cmdName.String(), "_", " ", -1))
+	commandStr := cases.Title(language.English).String(strings.ReplaceAll(cmdName.String(), "_", " "))
 	common := commonData{
 		Command:                  commandStr,
 		Verbose:                  verbose,
