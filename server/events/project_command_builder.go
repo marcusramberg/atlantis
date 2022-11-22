@@ -133,7 +133,7 @@ type ProjectVersionCommandBuilder interface {
 	BuildVersionCommands(ctx *command.Context, comment *CommentCommand) ([]command.ProjectContext, error)
 }
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_project_command_builder.go ProjectCommandBuilder
+//go:generate mockgen -package mocks -destination mocks/mock_project_command_builder.go . ProjectCommandBuilder
 
 // ProjectCommandBuilder builds commands that run on individual projects.
 type ProjectCommandBuilder interface {

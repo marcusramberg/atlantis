@@ -51,7 +51,7 @@ const (
 // and pasting GitHub comments.
 var multiLineRegex = regexp.MustCompile(`.*\r?\n[^\r\n]+`)
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_comment_parsing.go CommentParsing
+//go:generate mockgen -package mocks -destination mocks/mock_comment_parsing.go . CommentParsing
 
 // CommentParsing handles parsing pull request comments.
 type CommentParsing interface {
@@ -60,7 +60,7 @@ type CommentParsing interface {
 	Parse(comment string, vcsHost models.VCSHostType) CommentParseResult
 }
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_comment_building.go CommentBuilder
+//go:generate mockgen -package mocks -destination mocks/mock_comment_building.go . CommentBuilder
 
 // CommentBuilder builds comment commands that can be used on pull requests.
 type CommentBuilder interface {

@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	. "github.com/petergtz/pegomock"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/runatlantis/atlantis/server"
 	"github.com/runatlantis/atlantis/server/controllers/templates"
 	tMocks "github.com/runatlantis/atlantis/server/controllers/templates/mocks"
@@ -60,9 +60,11 @@ func TestNewServer_InvalidAtlantisURL(t *testing.T) {
 
 func TestIndex_LockErr(t *testing.T) {
 	t.Log("index should return a 503 if unable to list locks")
-	RegisterMockTestingT(t)
-	l := mocks.NewMockLocker()
-	When(l.List()).ThenReturn(nil, errors.New("err"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	l := mocks.NewMockLocker(ctrl)
+	l.EXPECT().List().Return(nil, errors.New("err"))
+	//When(l.List()).ThenReturn(nil, errors.New("err"))
 	s := server.Server{
 		Locker: l,
 	}
@@ -74,9 +76,9 @@ func TestIndex_LockErr(t *testing.T) {
 
 func TestIndex_Success(t *testing.T) {
 	t.Log("Index should render the index template successfully.")
-	RegisterMockTestingT(t)
-	l := mocks.NewMockLocker()
-	al := mocks.NewMockApplyLocker()
+	ctrl := gomock.NewController(t)
+	l := mocks.NewMockLocker(ctrl)
+	al := mocks.NewMockApplyLocker(ctrl)
 	// These are the locks that we expect to be rendered.
 	now := time.Now()
 	locks := map[string]models.ProjectLock{
@@ -90,8 +92,8 @@ func TestIndex_Success(t *testing.T) {
 			Time: now,
 		},
 	}
-	When(l.List()).ThenReturn(locks, nil)
-	it := tMocks.NewMockTemplateWriter()
+  l.EXPECT().List().Return(locks,nil)
+	it := tMocks.NewMockTemplateWriter(ctrl)
 	r := mux.NewRouter()
 	atlantisVersion := "0.3.1"
 	// Need to create a lock route since the server expects this route to exist.
@@ -111,7 +113,7 @@ func TestIndex_Success(t *testing.T) {
 	req, _ := http.NewRequest("GET", "", bytes.NewBuffer(nil))
 	w := httptest.NewRecorder()
 	s.Index(w, req)
-	it.VerifyWasCalledOnce().Execute(w, templates.IndexData{
+	it.EXPECT().Execute(w, templates.IndexTemplate, templates.IndexData{
 		ApplyLock: templates.ApplyLockData{
 			Locked:        false,
 			Time:          time.Time{},
@@ -127,7 +129,7 @@ func TestIndex_Success(t *testing.T) {
 			},
 		},
 		AtlantisVersion: atlantisVersion,
-	})
+	}).Times(1)
 	ResponseContains(t, w, http.StatusOK, "")
 }
 

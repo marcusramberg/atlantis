@@ -126,24 +126,16 @@ This is easier to read and more consistent
 - use our testing utility for easier-to-read assertions: `import . "github.com/runatlantis/atlantis/testing"` and then use `Assert()`, `Equals()` and `Ok()`
 
 ### Mocks
-We use [pegomock](https://github.com/petergtz/pegomock) for mocking. If you're
+We use [gomock](https://github.com/golang/gomock) for mocking. If you're
 modifying any interfaces that are mocked, you'll need to regen the mocks for that
 interface.
 
-Install using `go get github.com/petergtz/pegomock/pegomock`
+Install using `go install github.com/golang/mock/mockgen@v1.6.0`
 
-If you see errors like:
-```
-# github.com/runatlantis/atlantis/server/events [github.com/runatlantis/atlantis/server/events.test]
-server/events/project_command_builder_internal_test.go:567:5: cannot use workingDir (type *MockWorkingDir) as type WorkingDir in field value:
-	*MockWorkingDir does not implement WorkingDir (missing ListAllFiles method)
-```
-
-Then you've likely modified an interface and now need to update the mocks.
 
 Each interface that is mocked has a `go:generate` command above it, e.g.
 ```go
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_project_command_builder.go ProjectCommandBuilder
+//go:generate mockgen -package mocks -destination mocks/mock_project_command_builder.go . ProjectCommandBuilder
 
 type ProjectCommandBuilder interface {
 	BuildAutoplanCommands(ctx *command.Context) ([]command.ProjectContext, error)
@@ -153,11 +145,6 @@ type ProjectCommandBuilder interface {
 To regen the mock, run `go generate` on that file, e.g.
 ```sh
 go generate server/events/project_command_builder.go
-```
-
-If you get an error about `pegomock` not being available, install it:
-```sh
-go get github.com/petergtz/pegomock/...
 ```
 
 # Creating a New Release

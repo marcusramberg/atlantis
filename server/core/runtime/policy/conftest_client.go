@@ -73,7 +73,7 @@ func (c ConftestTestCommandArgs) build() ([]string, error) {
 
 // SourceResolver resolves the policy set to a local fs path
 //
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_conftest_client.go SourceResolver
+//go:generate mockgen -destination=mocks/mock_conftest_client.go -package=mocks github.com/runatlantis/atlantis/server/core/runtime/policy SourceResolver
 type SourceResolver interface {
 	Resolve(policySet valid.PolicySet) (string, error)
 }

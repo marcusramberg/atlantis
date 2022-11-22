@@ -3,13 +3,14 @@ package controllers_test
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/runatlantis/atlantis/server/events/command"
-	"github.com/runatlantis/atlantis/server/events/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/petergtz/pegomock"
+	"github.com/golang/mock/gomock"
+	"github.com/runatlantis/atlantis/server/events/command"
+	"github.com/runatlantis/atlantis/server/events/models"
+
 	"github.com/runatlantis/atlantis/server/controllers"
 	. "github.com/runatlantis/atlantis/server/core/locking/mocks"
 	"github.com/runatlantis/atlantis/server/events"
@@ -37,8 +38,8 @@ func TestAPIController_Plan(t *testing.T) {
 	w := httptest.NewRecorder()
 	ac.Plan(w, req)
 	ResponseContains(t, w, http.StatusOK, "")
-	projectCommandBuilder.VerifyWasCalledOnce().BuildPlanCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand())
-	projectCommandRunner.VerifyWasCalledOnce().Plan(AnyModelsProjectCommandContext())
+	projectCommandBuilder.EXPECT().BuildPlanCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand()).Times(1)
+	projectCommandRunner.EXPECT().Plan(AnyModelsProjectCommandContext()).Times(1)
 }
 
 func TestAPIController_Apply(t *testing.T) {
@@ -60,30 +61,30 @@ func TestAPIController_Apply(t *testing.T) {
 }
 
 func setup(t *testing.T) (controllers.APIController, *MockProjectCommandBuilder, *MockProjectCommandRunner) {
-	RegisterMockTestingT(t)
-	locker := NewMockLocker()
+		ctrl := gomock.NewController(t)
+	locker := NewMockLocker(ctrl)
 	logger := logging.NewNoopLogger(t)
 	scope, _, _ := metrics.NewLoggingScope(logger, "null")
-	parser := NewMockEventParsing()
-	vcsClient := NewMockClient()
+	parser := NewMockEventParsing(ctrl)
+	vcsClient := NewMockClient(ctrl)
 	repoAllowlistChecker, err := events.NewRepoAllowlistChecker("*")
 	Ok(t, err)
 
-	projectCommandBuilder := NewMockProjectCommandBuilder()
-	When(projectCommandBuilder.BuildPlanCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand())).
-		ThenReturn([]command.ProjectContext{{
+	projectCommandBuilder := NewMockProjectCommandBuilder(ctrl)
+	projectCommandBuilder.EXPECT().BuildPlanCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand()).
+		Return([]command.ProjectContext{{
 			CommandName: command.Plan,
 		}}, nil)
-	When(projectCommandBuilder.BuildApplyCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand())).
-		ThenReturn([]command.ProjectContext{{
+	projectCommandBuilder.EXPECT().BuildApplyCommands(AnyPtrToEventsCommandContext(), AnyPtrToEventsCommentCommand()).
+		Return([]command.ProjectContext{{
 			CommandName: command.Apply,
 		}}, nil)
 
-	projectCommandRunner := NewMockProjectCommandRunner()
-	When(projectCommandRunner.Plan(AnyModelsProjectCommandContext())).ThenReturn(command.ProjectResult{
+	projectCommandRunner := NewMockProjectCommandRunner(ctrl)
+	projectCommandRunner.EXPECT().Plan(AnyModelsProjectCommandContext()).Return(command.ProjectResult{
 		PlanSuccess: &models.PlanSuccess{},
 	})
-	When(projectCommandRunner.Apply(AnyModelsProjectCommandContext())).ThenReturn(command.ProjectResult{
+	projectCommandRunner.EXPECT().Apply(AnyModelsProjectCommandContext()).Return(command.ProjectResult{
 		ApplySuccess: "success",
 	})
 

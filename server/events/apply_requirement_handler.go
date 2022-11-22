@@ -7,7 +7,7 @@ import (
 	"github.com/runatlantis/atlantis/server/events/models"
 )
 
-//go:generate pegomock generate -m --package mocks -o mocks/mock_apply_handler.go ApplyRequirement
+//go:generate mockgen -package mocks -destination mocks/mock_apply_handler.go . ApplyRequirement
 type ApplyRequirement interface {
 	ValidateProject(repoDir string, ctx command.ProjectContext) (string, error)
 }

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	runtime_mocks "github.com/runatlantis/atlantis/server/core/runtime/mocks"
 
-	. "github.com/petergtz/pegomock"
 	"github.com/runatlantis/atlantis/server/core/config/valid"
 	"github.com/runatlantis/atlantis/server/events"
 	"github.com/runatlantis/atlantis/server/events/command"
@@ -24,11 +24,12 @@ var postWhWorkingDirLocker *mocks.MockWorkingDirLocker
 var whPostWorkflowHookRunner *runtime_mocks.MockPostWorkflowHookRunner
 
 func postWorkflowHooksSetup(t *testing.T) {
-	RegisterMockTestingT(t)
-	vcsClient := vcsmocks.NewMockClient()
-	postWhWorkingDir = mocks.NewMockWorkingDir()
-	postWhWorkingDirLocker = mocks.NewMockWorkingDirLocker()
-	whPostWorkflowHookRunner = runtime_mocks.NewMockPostWorkflowHookRunner()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	vcsClient := vcsmocks.NewMockClient(ctrl)
+	postWhWorkingDir = mocks.NewMockWorkingDir(ctrl)
+	postWhWorkingDirLocker = mocks.NewMockWorkingDirLocker(ctrl)
+	whPostWorkflowHookRunner = runtime_mocks.NewMockPostWorkflowHookRunner(ctrl)
 
 	postWh = events.DefaultPostWorkflowHooksCommandRunner{
 		VCSClient:              vcsClient,
@@ -90,14 +91,14 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		postWh.GlobalCfg = globalCfg
 
-		When(postWhWorkingDirLocker.TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir)).ThenReturn(unlockFn, nil)
-		When(postWhWorkingDir.Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)).ThenReturn(repoDir, false, nil)
-		When(whPostWorkflowHookRunner.Run(pCtx, testHook.RunCommand, repoDir)).ThenReturn(result, nil)
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir).Return(unlockFn, nil)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Return(repoDir, false, nil)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Return(result, nil)
 
 		err := postWh.RunPostHooks(ctx, nil)
 
 		Ok(t, err)
-		whPostWorkflowHookRunner.VerifyWasCalledOnce().Run(pCtx, testHook.RunCommand, repoDir)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Times(1)
 		Assert(t, *unlockCalled == true, "unlock function called")
 	})
 	t.Run("success hooks not in cfg", func(t *testing.T) {
@@ -125,9 +126,9 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		Ok(t, err)
 
-		whPostWorkflowHookRunner.VerifyWasCalled(Never()).Run(pCtx, testHook.RunCommand, repoDir)
-		postWhWorkingDirLocker.VerifyWasCalled(Never()).TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace)
-		postWhWorkingDir.VerifyWasCalled(Never()).Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Times(0)
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace).Times(0)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Times(0)
 	})
 	t.Run("error locking work dir", func(t *testing.T) {
 		postWorkflowHooksSetup(t)
@@ -145,13 +146,13 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		postWh.GlobalCfg = globalCfg
 
-		When(postWhWorkingDirLocker.TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir)).ThenReturn(func() {}, errors.New("some error"))
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir).Return(func() {}, errors.New("some error"))
 
 		err := postWh.RunPostHooks(ctx, nil)
 
 		Assert(t, err != nil, "error not nil")
-		postWhWorkingDir.VerifyWasCalled(Never()).Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)
-		whPostWorkflowHookRunner.VerifyWasCalled(Never()).Run(pCtx, testHook.RunCommand, repoDir)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Times(0)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Times(0)
 	})
 
 	t.Run("error cloning", func(t *testing.T) {
@@ -175,14 +176,14 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		postWh.GlobalCfg = globalCfg
 
-		When(postWhWorkingDirLocker.TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir)).ThenReturn(unlockFn, nil)
-		When(postWhWorkingDir.Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)).ThenReturn(repoDir, false, errors.New("some error"))
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir).Return(unlockFn, nil)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Return(repoDir, false, errors.New("some error"))
 
 		err := postWh.RunPostHooks(ctx, nil)
 
 		Assert(t, err != nil, "error not nil")
 
-		whPostWorkflowHookRunner.VerifyWasCalled(Never()).Run(pCtx, testHook.RunCommand, repoDir)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Times(0)
 		Assert(t, *unlockCalled == true, "unlock function called")
 	})
 
@@ -207,9 +208,9 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		postWh.GlobalCfg = globalCfg
 
-		When(postWhWorkingDirLocker.TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir)).ThenReturn(unlockFn, nil)
-		When(postWhWorkingDir.Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)).ThenReturn(repoDir, false, nil)
-		When(whPostWorkflowHookRunner.Run(pCtx, testHook.RunCommand, repoDir)).ThenReturn(result, errors.New("some error"))
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir).Return(unlockFn, nil)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Return(repoDir, false, nil)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Return(result, errors.New("some error"))
 
 		err := postWh.RunPostHooks(ctx, nil)
 
@@ -245,14 +246,14 @@ func TestRunPostHooks_Clone(t *testing.T) {
 
 		postWh.GlobalCfg = globalCfg
 
-		When(postWhWorkingDirLocker.TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir)).ThenReturn(unlockFn, nil)
-		When(postWhWorkingDir.Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace)).ThenReturn(repoDir, false, nil)
-		When(whPostWorkflowHookRunner.Run(pCtx, testHook.RunCommand, repoDir)).ThenReturn(result, nil)
+		postWhWorkingDirLocker.EXPECT().TryLock(fixtures.GithubRepo.FullName, newPull.Num, events.DefaultWorkspace, events.DefaultRepoRelDir).Return(unlockFn, nil)
+		postWhWorkingDir.EXPECT().Clone(log, fixtures.GithubRepo, newPull, events.DefaultWorkspace).Return(repoDir, false, nil)
+		whPostWorkflowHookRunner.EXPECT().Run(pCtx, testHook.RunCommand, repoDir).Return(result, nil)
 
 		err := postWh.RunPostHooks(ctx, cmd)
 
 		Ok(t, err)
-		whPostWorkflowHookRunner.VerifyWasCalledOnce().Run(expectedCtx, testHook.RunCommand, repoDir)
+		whPostWorkflowHookRunner.EXPECT().Run(expectedCtx, testHook.RunCommand, repoDir).Times(1)
 		Assert(t, *unlockCalled == true, "unlock function called")
 	})
 }

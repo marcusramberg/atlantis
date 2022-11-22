@@ -8,7 +8,7 @@ import (
 	"github.com/runatlantis/atlantis/server/events/vcs"
 )
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_pre_workflows_hooks_command_runner.go PreWorkflowHooksCommandRunner
+//go:generate mockgen -package mocks -destination mocks/mock_pre_workflows_hooks_command_runner.go . PreWorkflowHooksCommandRunner
 
 type PreWorkflowHooksCommandRunner interface {
 	RunPreHooks(ctx *command.Context, cmd *CommentCommand) error

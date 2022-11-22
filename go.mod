@@ -28,7 +28,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moby/moby v20.10.21+incompatible
 	github.com/mohae/deepcopy v0.0.0-20170603005431-491d3605edfb
-	github.com/petergtz/pegomock v2.9.0+incompatible
+	github.com/golang/mock v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/remeh/sizedwaitgroup v1.0.0
 	github.com/shurcooL/githubv4 v0.0.0-20221021030919-a134b1472cc7

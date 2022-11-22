@@ -8,7 +8,7 @@ import (
 	"github.com/runatlantis/atlantis/server/events/vcs"
 )
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_post_workflows_hooks_command_runner.go PostWorkflowHooksCommandRunner
+//go:generate mockgen -package mocks -destination mocks/mock_post_workflow_hooks_command_runner.go . PostWorkflowHooksCommandRunner
 
 type PostWorkflowHooksCommandRunner interface {
 	RunPostHooks(ctx *command.Context, cmd *CommentCommand) error

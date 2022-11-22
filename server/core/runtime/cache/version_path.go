@@ -9,8 +9,8 @@ import (
 	"github.com/runatlantis/atlantis/server/core/runtime/models"
 )
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_version_path.go ExecutionVersionCache
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_key_serializer.go KeySerializer
+//go:generate mockgen -source=version_path.go -destination=mocks/mock_version_path.go -package=mocks . VersionPath
+//go:generate mockgen -source=version_path.go -destination=mocks/mock_key_serializer.go -package=mocks . KeySerializer
 
 type ExecutionVersionCache interface {
 	Get(key *version.Version) (string, error)

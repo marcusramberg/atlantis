@@ -31,8 +31,10 @@ const workingDirPrefix = "repos"
 
 var cloneLocks sync.Map
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_working_dir.go WorkingDir
-//go:generate pegomock generate -m --use-experimental-model-gen --package events WorkingDir
+// FIXME: Why was this generated twice?
+//pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_working_dir.go WorkingDir
+//pegomock generate -m --use-experimental-model-gen --package events WorkingDir
+//go:generate mockgen -package mocks -destination mocks/mock_working_dir.go . WorkingDir
 
 // WorkingDir handles the workspace on disk for running commands.
 type WorkingDir interface {

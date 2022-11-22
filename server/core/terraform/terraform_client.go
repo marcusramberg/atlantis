@@ -43,7 +43,7 @@ var LogStreamingValidCmds = [...]string{"init", "plan", "apply"}
 // Setting the buffer size to 10mb
 const BufioScannerBufferSize = 10 * 1024 * 1024
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_terraform_client.go Client
+//go:generate mockgen -package mocks -destination mocks/mock_terraform_client.go . Client
 
 type Client interface {
 	// RunCommandWithVersion executes terraform with args in path. If v is nil,
@@ -83,7 +83,7 @@ type DefaultClient struct {
 	projectCmdOutputHandler jobs.ProjectCommandOutputHandler
 }
 
-//go:generate pegomock generate -m --use-experimental-model-gen --package mocks -o mocks/mock_downloader.go Downloader
+//go:generate mockgen -package mocks -destination mocks/mock_downloader.go . Downloader
 
 // Downloader is for downloading terraform versions.
 type Downloader interface {
